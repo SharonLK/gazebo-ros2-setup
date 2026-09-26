@@ -1,0 +1,63 @@
+# ROS 2 / colcon build artifacts
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Test / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs / temporary files
+*.log
+*.tmp
+*.temp
+*~
+
+# Gazebo
+.gazebo/
+*.state
+
+# ROS bag recordings
+*.bag
+*.db3
+*.mcap
+
+# Generated maps
+*.pgm
+*.yaml
+
+# CMake leftovers, in case anything is built manually
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Optional local environment/config files
+.env
+.env.*
