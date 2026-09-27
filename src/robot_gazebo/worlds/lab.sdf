@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 
 <sdf version="1.9">
 
@@ -11,15 +11,15 @@
 
     <plugin
       filename="gz-sim-physics-system"
-      name="gz::sim::systems::Physics"/>
+      name="gz::sim::systems::Physics" />
 
     <plugin
       filename="gz-sim-user-commands-system"
-      name="gz::sim::systems::UserCommands"/>
+      name="gz::sim::systems::UserCommands" />
 
     <plugin
       filename="gz-sim-scene-broadcaster-system"
-      name="gz::sim::systems::SceneBroadcaster"/>
+      name="gz::sim::systems::SceneBroadcaster" />
 
     <!-- Already included so adding LiDAR/cameras later requires no world redesign -->
     <plugin

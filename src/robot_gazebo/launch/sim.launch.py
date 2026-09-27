@@ -149,6 +149,19 @@ def generate_launch_description():
     )
 
     # ---------------------------------------------------------
+    # Gazebo simulation scan -> ROS 2
+    # ---------------------------------------------------------
+
+    lidar_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        output='screen',
+        arguments=[
+            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
+        ],
+    )
+
+    # ---------------------------------------------------------
     # Startup sequencing
     #
     # 1. Spawn robot
@@ -183,6 +196,7 @@ def generate_launch_description():
             gazebo,
             robot_state_publisher,
             clock_bridge,
+            lidar_bridge,
             start_joint_state_broadcaster,
             start_diff_drive_controller,
             spawn_robot,
