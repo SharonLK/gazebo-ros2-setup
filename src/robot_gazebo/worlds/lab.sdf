@@ -21,15 +21,16 @@
       filename="gz-sim-scene-broadcaster-system"
       name="gz::sim::systems::SceneBroadcaster" />
 
-    <!-- Already included so adding LiDAR/cameras later requires no world redesign -->
     <plugin
       filename="gz-sim-sensors-system"
       name="gz::sim::systems::Sensors">
-
       <render_engine>ogre2</render_engine>
-
     </plugin>
 
+
+    <!-- ========================================================= -->
+    <!-- LIGHT -->
+    <!-- ========================================================= -->
 
     <light type="directional" name="sun">
 
@@ -42,6 +43,10 @@
 
     </light>
 
+
+    <!-- ========================================================= -->
+    <!-- GROUND -->
+    <!-- ========================================================= -->
 
     <model name="ground">
 
@@ -78,13 +83,130 @@
     </model>
 
 
-    <model name="obstacle">
+    <!-- ========================================================= -->
+    <!-- OUTER WALLS -->
+    <!-- Arena is approximately 19.6 x 19.6 m internally -->
+    <!-- ========================================================= -->
+
+    <!-- North wall -->
+    <model name="wall_north">
+      <static>true</static>
+      <pose>0 9.9 0.5 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>20 0.2 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>20 0.2 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+    </model>
+
+
+    <!-- South wall -->
+    <model name="wall_south">
+      <static>true</static>
+      <pose>0 -9.9 0.5 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>20 0.2 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>20 0.2 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+    </model>
+
+
+    <!-- East wall -->
+    <model name="wall_east">
+      <static>true</static>
+      <pose>9.9 0 0.5 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.2 20 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.2 20 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+    </model>
+
+
+    <!-- West wall -->
+    <model name="wall_west">
+      <static>true</static>
+      <pose>-9.9 0 0.5 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.2 20 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.2 20 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+    </model>
+
+
+    <!-- ========================================================= -->
+    <!-- OBSTACLES -->
+    <!-- ========================================================= -->
+
+    <!-- Original medium box -->
+    <model name="obstacle_box_1">
 
       <static>true</static>
+      <pose>2.0 0 0.5 0 0 0</pose>
 
-      <pose>1.5 0 0.5 0 0 0</pose>
-
-      <link name="box">
+      <link name="link">
 
         <collision name="collision">
           <geometry>
@@ -98,6 +220,244 @@
           <geometry>
             <box>
               <size>0.5 1.0 1.0</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Tall narrow pillar -->
+    <model name="obstacle_pillar">
+
+      <static>true</static>
+      <pose>-3.0 2.5 0.75 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.6 0.6 1.5</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.6 0.6 1.5</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Large cylinder -->
+    <model name="obstacle_cylinder_large">
+
+      <static>true</static>
+      <pose>4.0 3.0 0.6 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.7</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.7</radius>
+              <length>1.2</length>
+            </cylinder>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Small cylinder -->
+    <model name="obstacle_cylinder_small">
+
+      <static>true</static>
+      <pose>-2.5 -3.5 0.35 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.35</radius>
+              <length>0.7</length>
+            </cylinder>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.35</radius>
+              <length>0.7</length>
+            </cylinder>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Low wide box -->
+    <model name="obstacle_low_box">
+
+      <static>true</static>
+      <pose>3.5 -3.0 0.25 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.5 1.0 0.5</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.5 1.0 0.5</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Long diagonal barrier -->
+    <model name="obstacle_barrier">
+
+      <static>true</static>
+
+      <!-- yaw = about 30 degrees -->
+      <pose>-4.5 -1.0 0.4 0 0 0.52</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>3.0 0.35 0.8</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>3.0 0.35 0.8</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Sphere -->
+    <model name="obstacle_sphere">
+
+      <static>true</static>
+      <pose>0.5 5.0 0.6 0 0 0</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.6</radius>
+            </sphere>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.6</radius>
+            </sphere>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Rectangular obstacle near far side -->
+    <model name="obstacle_box_2">
+
+      <static>true</static>
+      <pose>5.5 -5.5 0.6 0 0 -0.35</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>1.0 2.0 1.2</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>1.0 2.0 1.2</size>
+            </box>
+          </geometry>
+        </visual>
+
+      </link>
+
+    </model>
+
+
+    <!-- Another box, rotated -->
+    <model name="obstacle_box_3">
+
+      <static>true</static>
+      <pose>-5.5 5.0 0.5 0 0 0.8</pose>
+
+      <link name="link">
+
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>2.0 0.8 1.0</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>2.0 0.8 1.0</size>
             </box>
           </geometry>
         </visual>
