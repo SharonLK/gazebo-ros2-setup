@@ -30,6 +30,7 @@ setup(
     entry_points={
         'console_scripts': [
             'drive_demo = robot_logic.drive_demo:main',
+            'basic_mapper = robot_logic.basic_mapper:main',
         ],
     },
 )
