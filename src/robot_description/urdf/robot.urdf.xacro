@@ -199,6 +199,8 @@
       <topic>scan</topic>
       <update_rate>10</update_rate>
 
+      <gz_frame_id>lidar_link</gz_frame_id>
+
       <lidar>
 
         <scan>
@@ -225,7 +227,7 @@
 
   </gazebo>
 
-  
+
   <!-- ==================== ROS 2 CONTROL ==================== -->
 
   <ros2_control name="GazeboSimSystem" type="system">
