@@ -67,9 +67,11 @@ ros2 launch robot_gazebo sim.launch.py
 In a second WSL terminal (source `/opt/ros/jazzy/setup.bash` and `install/setup.bash` in each new terminal):
 
 ```bash
-ros2 run robot_logic drive_demo       # drive the robot around
-ros2 run robot_logic basic_mapper     # publish an occupancy grid on /map
+ros2 run robot_logic drive_demo --ros-args -p use_sim_time:=true       # drive the robot around
+ros2 run robot_logic basic_mapper --ros-args -p use_sim_time:=true     # publish an occupancy grid on /map
 ```
+
+`use_sim_time:=true` makes a node take its timers and `now()` from Gazebo's `/clock` instead of the wall clock. Without it, timing drifts from the robot whenever the simulation runs slower than real time, which is common on WSL. The launch file only sets it for `robot_state_publisher`, so pass it to every node you start yourself.
 
 To view the map, run `rviz2` and add a **Map** display on `/map` with the fixed frame set to `odom`. You can also add a **LaserScan** display on `/scan`.
 

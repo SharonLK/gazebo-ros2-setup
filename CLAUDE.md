@@ -14,8 +14,8 @@ Run from the repo root in a sourced ROS 2 environment (Linux/WSL; `build/`, `ins
 colcon build --symlink-install
 source install/setup.bash
 ros2 launch robot_gazebo sim.launch.py          # Gazebo + robot + controllers + bridges
-ros2 run robot_logic drive_demo                 # publish demo TwistStamped commands
-ros2 run robot_logic basic_mapper               # odom+scan -> /map OccupancyGrid
+ros2 run robot_logic drive_demo --ros-args -p use_sim_time:=true      # publish demo TwistStamped commands
+ros2 run robot_logic basic_mapper --ros-args -p use_sim_time:=true    # odom+scan -> /map OccupancyGrid
 colcon test --packages-select robot_logic       # ament copyright / flake8 / pep257 only
 colcon test-result --verbose
 ```
@@ -40,4 +40,4 @@ Gazebo starts the world, `robot_state_publisher` publishes the xacro-expanded UR
 - The `gz_frame_id` of the lidar sensor in the URDF must stay `lidar_link` so `/scan` frames match the TF tree.
 - The controller takes `geometry_msgs/TwistStamped` (not `Twist`) on `/diff_drive_controller/cmd_vel` and publishes odometry on `/diff_drive_controller/odom`; `drive_demo` and `basic_mapper` hardcode these topics.
 - `basic_mapper` is deliberately naive "SLAM": it projects scan hits through odometry pose only (no scan matching, no `map→odom` TF); it Bresenham-traces each ray to mark free cells (0) and the hit cell occupied (100), never overwriting occupied cells with free, and clears to max range on `inf` readings. It publishes a 400x400 grid at 5 cm in the `odom` frame. It assumes the scan frame coincides with the robot origin/yaw (no lidar offset applied).
-- All nodes use sim time from the `/clock` bridge (`use_sim_time` is set on `robot_state_publisher`).
+- Sim time comes from the `/clock` bridge, but only `robot_state_publisher` sets `use_sim_time`. `drive_demo` and `basic_mapper` run on wall time unless started with `--ros-args -p use_sim_time:=true`. Pass it to any new node, since robot timing follows sim time, not wall time.
