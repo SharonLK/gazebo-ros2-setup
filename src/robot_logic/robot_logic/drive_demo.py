@@ -42,31 +42,7 @@ class DriveDemo(Node):
             10,
         )
 
-        # self.timer = self.create_timer(
-        #     0.1,
-        #     self.publish_command,
-        # )
-
         self.get_logger().info(f'Publishing velocity commands to {cmd_vel_topic}')
-
-    # def publish_command(self):
-
-    #     linear_speed = (
-    #         self.get_parameter('linear_speed').get_parameter_value().double_value
-    #     )
-
-    #     angular_speed = (
-    #         self.get_parameter('angular_speed').get_parameter_value().double_value
-    #     )
-
-    #     message = TwistStamped()
-
-    #     message.header.stamp = self.get_clock().now().to_msg()
-
-    #     message.twist.linear.x = linear_speed
-    #     message.twist.angular.z = angular_speed
-
-    #     self.cmd_vel_publisher.publish(message)
 
     def stop_bot(self):
         msg = TwistStamped()
