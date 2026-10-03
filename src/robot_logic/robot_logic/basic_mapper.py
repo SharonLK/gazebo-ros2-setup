@@ -5,6 +5,9 @@ from nav_msgs.msg import OccupancyGrid, Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 
+OCCUPIED_FACTOR = 0.85
+FREE_FACTOR = -0.4
+
 
 class BasicMapper(Node):
     def __init__(self):
@@ -22,7 +25,8 @@ class BasicMapper(Node):
         # -1 = unknown
         #  0 = free
         # 100 = occupied
-        self.grid = [-1] * (self.width * self.height)
+        self.grid = [0.0] * (self.width * self.height)
+        self.observed = [False] * (self.width * self.height)
 
         self.robot_x = 0.0
         self.robot_y = 0.0
@@ -146,15 +150,26 @@ class BasicMapper(Node):
             end_x, end_y = cells[-1]
             self.set_cell(end_x, end_y, 100)
 
+    def print_matrix(self, data, width, height):
+        for y in range(height):
+            row = data[y * width : (y + 1) * width]
+            print(' '.join(f'{v:6}' for v in row))
+
     def set_cell(self, x: int, y: int, value: int):
         if 0 <= x < self.width and 0 <= y < self.height:
             index = y * self.width + x
 
             # Don't overwrite an occupied cell with free space
-            if value == 0 and self.grid[index] == 100:
-                return
+            if value == 0:
+                self.grid[index] += FREE_FACTOR
+            elif value == 100:
+                self.grid[index] += OCCUPIED_FACTOR
 
-            self.grid[index] = value
+            self.grid[index] = self.clamp(self.grid[index], -5, 5)
+            self.observed[index] = True
+
+    def clamp(self, value, min_val, max_val):
+        return max(min_val, min(value, max_val))
 
     def bresenham(
         self,
@@ -194,6 +209,9 @@ class BasicMapper(Node):
 
         return cells
 
+    def sigmoid(self, val: float) -> float:
+        return 1 / (1 + math.exp(val))
+
     def publish_map(self, scan: LaserScan):
         msg = OccupancyGrid()
 
@@ -209,7 +227,11 @@ class BasicMapper(Node):
         msg.info.origin.position.z = 0.0
         msg.info.origin.orientation.w = 1.0
 
-        msg.data = self.grid
+        published_grid = [-1] * len(self.grid)
+        for i in range(len(self.grid)):
+            published_grid[i] = round(self.sigmoid(self.grid[i]) * 100)
+
+        msg.data = published_grid
 
         self.map_pub.publish(msg)
 
