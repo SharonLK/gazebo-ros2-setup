@@ -50,7 +50,6 @@ desktop.ini
 
 # Generated maps
 *.pgm
-*.yaml
 
 # CMake leftovers, in case anything is built manually
 CMakeFiles/
