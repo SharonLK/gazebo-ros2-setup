@@ -8,8 +8,7 @@ A ROS 2 + Gazebo simulation of a differential-drive robot with a 2D LiDAR, drivi
 
 | Package | Purpose |
 | --- | --- |
-| `robot_description` | Robot URDF/xacro: chassis, wheels, caster, LiDAR, `ros2_control` hardware interface |
-| `robot_control` | `ros2_control` configuration (`joint_state_broadcaster`, `diff_drive_controller`) |
+| `robots` | One self-contained folder per robot: URDF/xacro, `ros2_control` controllers and Gazebo bridge config (currently `diffdrive_lidar`) |
 | `robot_gazebo` | Gazebo world (`lab.sdf`) and the `sim.launch.py` launch file |
 | `robot_logic` | Python nodes: `drive_demo` (drives the robot) and `basic_mapper` (builds a `/map`) |
 
@@ -64,6 +63,8 @@ Start the simulation (Gazebo, robot, controllers, `/clock` and `/scan` bridges):
 ros2 launch robot_gazebo sim.launch.py
 ```
 
+Optional arguments: `robot:=<folder in src/robots>`, `world:=<name in robot_gazebo/worlds>` and `behavior:=<robot_logic executable>` (e.g. `behavior:=drive_demo`, which then runs on sim time automatically).
+
 In a second WSL terminal (source `/opt/ros/jazzy/setup.bash` and `install/setup.bash` in each new terminal):
 
 ```bash
@@ -79,17 +80,21 @@ To view the map, run `rviz2` and add a **Map** display on `/map` with the fixed 
 
 | Topic | Type | Notes |
 | --- | --- | --- |
-| `/diff_drive_controller/cmd_vel` | `geometry_msgs/TwistStamped` | Velocity command input |
-| `/diff_drive_controller/odom` | `nav_msgs/Odometry` | Wheel odometry |
+| `/cmd_vel` | `geometry_msgs/TwistStamped` | Velocity command input |
+| `/odom` | `nav_msgs/Odometry` | Wheel odometry |
 | `/scan` | `sensor_msgs/LaserScan` | LiDAR, bridged from Gazebo |
 | `/map` | `nav_msgs/OccupancyGrid` | Published by `basic_mapper` |
 
 Manual driving example:
 
 ```bash
-ros2 topic pub -r 10 /diff_drive_controller/cmd_vel geometry_msgs/msg/TwistStamped \
+ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/TwistStamped \
   "{twist: {linear: {x: 0.3}}}"
 ```
+
+## Adding a robot
+
+Copy `src/robots/diffdrive_lidar` to a new folder, edit its `robot.urdf.xacro`, `controllers.yaml` and `bridges.yaml`, and add the folder to `src/robots/CMakeLists.txt`. As long as the robot provides `/cmd_vel`, `/odom`, `/scan` and `/clock`, all `robot_logic` nodes work unchanged.
 
 ## Notes
 

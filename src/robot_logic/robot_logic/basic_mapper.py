@@ -36,7 +36,7 @@ class BasicMapper(Node):
 
         self.create_subscription(
             Odometry,
-            '/diff_drive_controller/odom',
+            '/odom',
             self.odom_callback,
             10,
         )
