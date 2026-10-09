@@ -60,6 +60,10 @@ def generate_launch_description():
         ]
     )
 
+    # ---------------------------------------------------------
+    # Robot description
+    # ---------------------------------------------------------
+
     robot_description = {
         'robot_description': Command(
             [
@@ -69,6 +73,10 @@ def generate_launch_description():
             ]
         )
     }
+
+    # ---------------------------------------------------------
+    # Gazebo
+    # ---------------------------------------------------------
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -88,6 +96,10 @@ def generate_launch_description():
         }.items(),
     )
 
+    # ---------------------------------------------------------
+    # Robot State Publisher
+    # ---------------------------------------------------------
+
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -99,6 +111,10 @@ def generate_launch_description():
             },
         ],
     )
+
+    # ---------------------------------------------------------
+    # Spawn robot into Gazebo
+    # ---------------------------------------------------------
 
     spawn_robot = Node(
         package='ros_gz_sim',
@@ -113,6 +129,10 @@ def generate_launch_description():
             '0.02',
         ],
     )
+
+    # ---------------------------------------------------------
+    # ros2_control controller spawners
+    # ---------------------------------------------------------
 
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
@@ -140,7 +160,10 @@ def generate_launch_description():
         ],
     )
 
+    # ---------------------------------------------------------
+    # Gazebo simulation clock -> ROS 2
     # All Gazebo <-> ROS topics for the robot are listed in its bridges.yaml
+    # ---------------------------------------------------------
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -153,7 +176,13 @@ def generate_launch_description():
         ],
     )
 
-    # Startup sequencing: spawn robot -> joint_state_broadcaster -> diff_drive_controller
+    # ---------------------------------------------------------
+    # Startup sequencing
+    #
+    # 1. Spawn robot
+    # 2. Start joint_state_broadcaster
+    # 3. Start diff_drive_controller
+    # ---------------------------------------------------------
     start_joint_state_broadcaster = RegisterEventHandler(
         OnProcessExit(
             target_action=spawn_robot,
@@ -167,6 +196,10 @@ def generate_launch_description():
             on_exit=[diff_drive_controller_spawner],
         )
     )
+
+    # ---------------------------------------------------------
+    # Launch
+    # ---------------------------------------------------------
 
     return LaunchDescription(
         [
