@@ -272,7 +272,7 @@
       name="gz_ros2_control::GazeboSimROS2ControlPlugin">
 
       <parameters>
-        $(find robot_control)/config/controllers.yaml
+        $(find robots)/diffdrive_lidar/controllers.yaml
       </parameters>
 
     </plugin>

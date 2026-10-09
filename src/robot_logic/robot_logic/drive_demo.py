@@ -12,7 +12,7 @@ class DriveDemo(Node):
 
         self.declare_parameter(
             'cmd_vel_topic',
-            '/diff_drive_controller/cmd_vel',
+            '/cmd_vel',
         )
 
         self.declare_parameter(

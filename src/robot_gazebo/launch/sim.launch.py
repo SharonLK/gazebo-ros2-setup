@@ -1,45 +1,64 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, RegisterEventHandler
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+    RegisterEventHandler,
+)
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+    TextSubstitution,
+)
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
+# Every robot exposes the same topic contract, whatever its controllers are
+# called internally: /cmd_vel (in), /odom, /scan (out), /clock.
+CONTROLLER_REMAPS = '-r diff_drive_controller/cmd_vel:=/cmd_vel -r diff_drive_controller/odom:=/odom'
+
+
+def launch_behavior(context):
+    behavior = LaunchConfiguration('behavior').perform(context)
+
+    if not behavior:
+        return []
+
+    return [
+        Node(
+            package='robot_logic',
+            executable=behavior,
+            output='screen',
+            parameters=[{'use_sim_time': True}],
+        )
+    ]
+
 
 def generate_launch_description():
+    robot = LaunchConfiguration('robot')
 
-    # ---------------------------------------------------------
-    # Paths
-    # ---------------------------------------------------------
+    # A robot is a self-contained folder in the `robots` package:
+    #   <robot>/robot.urdf.xacro, <robot>/controllers.yaml, <robot>/bridges.yaml
+    def robot_file(name):
+        return PathJoinSubstitution(
+            [FindPackageShare('robots'), robot, name],
+        )
 
-    robot_xacro = PathJoinSubstitution(
-        [
-            FindPackageShare('robot_description'),
-            'urdf',
-            'robot.urdf.xacro',
-        ]
-    )
+    robot_xacro = robot_file('robot.urdf.xacro')
+    controllers_file = robot_file('controllers.yaml')
+    bridges_file = robot_file('bridges.yaml')
 
     world = PathJoinSubstitution(
         [
             FindPackageShare('robot_gazebo'),
             'worlds',
-            'lab.sdf',
+            [LaunchConfiguration('world'), TextSubstitution(text='.sdf')],
         ]
     )
-
-    controllers_file = PathJoinSubstitution(
-        [
-            FindPackageShare('robot_control'),
-            'config',
-            'controllers.yaml',
-        ]
-    )
-
-    # ---------------------------------------------------------
-    # Robot description
-    # ---------------------------------------------------------
 
     robot_description = {
         'robot_description': Command(
@@ -50,10 +69,6 @@ def generate_launch_description():
             ]
         )
     }
-
-    # ---------------------------------------------------------
-    # Gazebo
-    # ---------------------------------------------------------
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -73,10 +88,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    # ---------------------------------------------------------
-    # Robot State Publisher
-    # ---------------------------------------------------------
-
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -89,10 +100,6 @@ def generate_launch_description():
         ],
     )
 
-    # ---------------------------------------------------------
-    # Spawn robot into Gazebo
-    # ---------------------------------------------------------
-
     spawn_robot = Node(
         package='ros_gz_sim',
         executable='create',
@@ -101,15 +108,11 @@ def generate_launch_description():
             '-topic',
             'robot_description',
             '-name',
-            'robot_lab',
+            robot,
             '-z',
             '0.02',
         ],
     )
-
-    # ---------------------------------------------------------
-    # ros2_control controller spawners
-    # ---------------------------------------------------------
 
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
@@ -132,73 +135,62 @@ def generate_launch_description():
             '/controller_manager',
             '--param-file',
             controllers_file,
+            '--controller-ros-args',
+            CONTROLLER_REMAPS,
         ],
     )
 
-    # ---------------------------------------------------------
-    # Gazebo simulation clock -> ROS 2
-    # ---------------------------------------------------------
-
-    clock_bridge = Node(
+    # All Gazebo <-> ROS topics for the robot are listed in its bridges.yaml
+    bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
         output='screen',
-        arguments=[
-            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+        parameters=[
+            {
+                'config_file': bridges_file,
+                'use_sim_time': True,
+            }
         ],
     )
 
-    # ---------------------------------------------------------
-    # Gazebo simulation scan -> ROS 2
-    # ---------------------------------------------------------
-
-    lidar_bridge = Node(
-        package='ros_gz_bridge',
-        executable='parameter_bridge',
-        output='screen',
-        arguments=[
-            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan',
-        ],
-    )
-
-    # ---------------------------------------------------------
-    # Startup sequencing
-    #
-    # 1. Spawn robot
-    # 2. Start joint_state_broadcaster
-    # 3. Start diff_drive_controller
-    # ---------------------------------------------------------
-
+    # Startup sequencing: spawn robot -> joint_state_broadcaster -> diff_drive_controller
     start_joint_state_broadcaster = RegisterEventHandler(
         OnProcessExit(
             target_action=spawn_robot,
-            on_exit=[
-                joint_state_broadcaster_spawner,
-            ],
+            on_exit=[joint_state_broadcaster_spawner],
         )
     )
 
     start_diff_drive_controller = RegisterEventHandler(
         OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
-            on_exit=[
-                diff_drive_controller_spawner,
-            ],
+            on_exit=[diff_drive_controller_spawner],
         )
     )
 
-    # ---------------------------------------------------------
-    # Launch
-    # ---------------------------------------------------------
-
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'robot',
+                default_value='diffdrive_lidar',
+                description='Robot folder name inside the `robots` package',
+            ),
+            DeclareLaunchArgument(
+                'world',
+                default_value='lab',
+                description='World name in robot_gazebo/worlds (without .sdf)',
+            ),
+            DeclareLaunchArgument(
+                'behavior',
+                default_value='',
+                description='robot_logic executable to start (e.g. drive_demo); empty = none',
+            ),
             gazebo,
             robot_state_publisher,
-            clock_bridge,
-            lidar_bridge,
+            bridge,
             start_joint_state_broadcaster,
             start_diff_drive_controller,
             spawn_robot,
+            OpaqueFunction(function=launch_behavior),
         ]
     )
